@@ -1,15 +1,26 @@
 using System.Collections.Generic;
 using Unity.Services.Multiplayer;
 using UnityEngine;
-using VS.Utilities.Singletons;
 
 namespace VS.NetcodeExampleProject.Networking {
-    public class SessionWidgetEventDispatcher : Singleton<SessionWidgetEventDispatcher> {
+    public class SessionWidgetEventDispatcher : MonoBehaviour {
+        public static SessionWidgetEventDispatcher Instance { get; private set; }
+        
         private ISession _activeSession;
         
         private readonly List<IWidget> _widgets = new List<IWidget>();
         private readonly List<ISessionLifecycleEvents> _sessionLifecycleListeners = new List<ISessionLifecycleEvents>();
         private readonly List<ISessionEvents> _sessionEventListeners = new List<ISessionEvents>();
+        
+        private void Awake() {
+            if (Instance != null && Instance != this) {
+                Destroy(gameObject);
+                return;
+            }
+        
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
         
         public void Start() {
             SessionHandler.Instance.OnSessionJoining += OnSessionJoining;

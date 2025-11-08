@@ -1,24 +1,32 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Multiplayer;
 using UnityEngine;
-using VS.Utilities.Singletons;
 
 namespace VS.NetcodeExampleProject.Networking {
     [DefaultExecutionOrder(-100)]
-    public class SessionHandler : Singleton<SessionHandler> {
+    public class SessionHandler : MonoBehaviour {
         [SerializeField] private SessionConfig sessionConfig;
         
+        public static SessionHandler Instance { get; private set; }
         public ISession ActiveSession { get; private set; }
 
         public event Action OnSessionJoining = delegate { };
         public event Action<SessionException> OnSessionFailedToJoin = delegate { };
         public event Action<ISession> OnSessionJoined = delegate { };
         public event Action OnSessionLeft = delegate { };
+        
+        private void Awake() {
+            if (Instance != null && Instance != this) {
+                Destroy(gameObject);
+                return;
+            }
+        
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
 
         private async void Start() {
             IServiceInitialization serviceInitialization = new SessionServiceInitialization();
@@ -48,7 +56,6 @@ namespace VS.NetcodeExampleProject.Networking {
         }
 
         public async Task JoinSessionByIdAsync(string sessionId) {
-            OnSessionJoining.Invoke();
             Dictionary<string, PlayerProperty> playerProperties = await GetPlayerProperties();
             JoinSessionOptions sessionOptions = new JoinSessionOptions {
                 PlayerProperties = playerProperties
@@ -60,7 +67,6 @@ namespace VS.NetcodeExampleProject.Networking {
         }
 
         public async Task JoinSessionByCodeAsync(string sessionCode) {
-            OnSessionJoining.Invoke();
             Dictionary<string, PlayerProperty> playerProperties = await GetPlayerProperties();
             JoinSessionOptions sessionOptions = new JoinSessionOptions {
                 PlayerProperties = playerProperties
