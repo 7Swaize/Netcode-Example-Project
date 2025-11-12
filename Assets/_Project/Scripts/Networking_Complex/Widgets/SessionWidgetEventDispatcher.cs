@@ -1,26 +1,14 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Services.Multiplayer;
-using UnityEngine;
 
 namespace VS.NetcodeExampleProject.Networking {
-    public class SessionWidgetEventDispatcher : MonoBehaviour {
-        public static SessionWidgetEventDispatcher Instance { get; private set; }
-        
+    public class SessionWidgetEventDispatcher : Singleton<SessionWidgetEventDispatcher> {
         private ISession _activeSession;
         
         private readonly List<IWidget> _widgets = new List<IWidget>();
         private readonly List<ISessionLifecycleEvents> _sessionLifecycleListeners = new List<ISessionLifecycleEvents>();
         private readonly List<ISessionEvents> _sessionEventListeners = new List<ISessionEvents>();
-        
-        private void Awake() {
-            if (Instance != null && Instance != this) {
-                Destroy(gameObject);
-                return;
-            }
-        
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
         
         public void Start() {
             SessionHandler.Instance.OnSessionJoining += OnSessionJoining;
@@ -60,13 +48,15 @@ namespace VS.NetcodeExampleProject.Networking {
         }
         
         private void OnSessionJoining() {
-            foreach (ISessionLifecycleEvents sessionLifecycleListener in _sessionLifecycleListeners) {
+            // Currently, I just take a snapshot of the listeners to prevent an 'InvalidOperationException'.
+            // The extra allocations shouldn't really matter.
+            foreach (ISessionLifecycleEvents sessionLifecycleListener in _sessionLifecycleListeners.ToList()) {
                 sessionLifecycleListener.OnSessionJoining();
             }
         }
         
         private void OnSessionFailedToJoin(SessionException exception) {
-            foreach (ISessionLifecycleEvents sessionLifecycleListener in _sessionLifecycleListeners) {
+            foreach (ISessionLifecycleEvents sessionLifecycleListener in _sessionLifecycleListeners.ToList()) {
                 sessionLifecycleListener.OnSessionFailedToJoin(exception);
             }
         }
@@ -75,7 +65,7 @@ namespace VS.NetcodeExampleProject.Networking {
             session.PlayerJoined += OnPlayerJoinedSession;
             session.PlayerLeaving += OnPlayerLeftSession;
             
-            foreach (ISessionLifecycleEvents sessionLifecycleListener in _sessionLifecycleListeners) {
+            foreach (ISessionLifecycleEvents sessionLifecycleListener in _sessionLifecycleListeners.ToList()) {
                 sessionLifecycleListener.OnSessionJoined(session);
             }
             
@@ -83,10 +73,12 @@ namespace VS.NetcodeExampleProject.Networking {
         }
         
         private void OnSessionLeft() {
-            _activeSession.PlayerJoined -= OnPlayerJoinedSession;
-            _activeSession.PlayerLeaving -= OnPlayerLeftSession;
+            if (_activeSession != null) {
+                _activeSession.PlayerJoined -= OnPlayerJoinedSession;
+                _activeSession.PlayerLeaving -= OnPlayerLeftSession;
+            }
             
-            foreach (ISessionLifecycleEvents sessionLifecycleListener in _sessionLifecycleListeners) {
+            foreach (ISessionLifecycleEvents sessionLifecycleListener in _sessionLifecycleListeners.ToList()) {
                 sessionLifecycleListener.OnSessionLeft();
             }
             
@@ -94,13 +86,13 @@ namespace VS.NetcodeExampleProject.Networking {
         }
 
         private void OnPlayerJoinedSession(string playerId) {
-            foreach (ISessionEvents sessionEventListener in _sessionEventListeners) {
+            foreach (ISessionEvents sessionEventListener in _sessionEventListeners.ToList()) {
                 sessionEventListener.OnPlayerJoinedSession(playerId);
             }
         }
         
         private void OnPlayerLeftSession(string playerId) {
-            foreach (ISessionEvents sessionEventListener in _sessionEventListeners) {
+            foreach (ISessionEvents sessionEventListener in _sessionEventListeners.ToList()) {
                 sessionEventListener.OnPlayerLeftSession(playerId);
             }
         }

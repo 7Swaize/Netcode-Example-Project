@@ -7,26 +7,15 @@ using UnityEngine;
 
 namespace VS.NetcodeExampleProject.Networking {
     [DefaultExecutionOrder(-100)]
-    public class SessionHandler : MonoBehaviour {
+    public class SessionHandler : Singleton<SessionHandler> {
         [SerializeField] private SessionConfig sessionConfig;
-        
-        public static SessionHandler Instance { get; private set; }
+
         public ISession ActiveSession { get; private set; }
 
         public event Action OnSessionJoining = delegate { };
         public event Action<SessionException> OnSessionFailedToJoin = delegate { };
         public event Action<ISession> OnSessionJoined = delegate { };
         public event Action OnSessionLeft = delegate { };
-        
-        private void Awake() {
-            if (Instance != null && Instance != this) {
-                Destroy(gameObject);
-                return;
-            }
-        
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
 
         private async void Start() {
             IServiceInitialization serviceInitialization = new SessionServiceInitialization();
@@ -34,7 +23,7 @@ namespace VS.NetcodeExampleProject.Networking {
         }
 
         public async Task CreateSessionAsHostAsync(SessionConfig config) {
-            Dictionary<string, PlayerProperty> playerProperties = await GetPlayerProperties(); 
+            Dictionary<string, PlayerProperty> playerProperties = await GetPlayerProperties();
 
             SessionOptions sessionOptions = new SessionOptions {
                 MaxPlayers = config.maxPlayers,
@@ -45,7 +34,8 @@ namespace VS.NetcodeExampleProject.Networking {
             };
 
             sessionOptions = config.networkConnectionType switch {
-                NetworkConnectionType.Direct => sessionOptions.WithDirectNetwork(config.listenIp, config.publishIp, config.port),
+                NetworkConnectionType.Direct => sessionOptions.WithDirectNetwork(config.listenIp, config.publishIp,
+                    config.port),
                 NetworkConnectionType.Relay => sessionOptions.WithRelayNetwork(),
                 _ => sessionOptions.WithDirectNetwork(config.listenIp, config.publishIp, config.port)
             };
@@ -60,7 +50,7 @@ namespace VS.NetcodeExampleProject.Networking {
             JoinSessionOptions sessionOptions = new JoinSessionOptions {
                 PlayerProperties = playerProperties
             };
-            
+
             await TryJoinOrCreateSessionAsync(async () => {
                 ActiveSession = await MultiplayerService.Instance.JoinSessionByIdAsync(sessionId, sessionOptions);
             });
@@ -71,7 +61,7 @@ namespace VS.NetcodeExampleProject.Networking {
             JoinSessionOptions sessionOptions = new JoinSessionOptions {
                 PlayerProperties = playerProperties
             };
-            
+
             await TryJoinOrCreateSessionAsync(async () => {
                 ActiveSession = await MultiplayerService.Instance.JoinSessionByCodeAsync(sessionCode, sessionOptions);
             });
@@ -104,7 +94,7 @@ namespace VS.NetcodeExampleProject.Networking {
                 OnSessionLeft.Invoke();
             }
         }
-        
+
         private static async Task<Dictionary<string, PlayerProperty>> GetPlayerProperties() {
             string playerName = await AuthenticationService.Instance.GetPlayerNameAsync();
             PlayerProperty playerNameProperty = new PlayerProperty(

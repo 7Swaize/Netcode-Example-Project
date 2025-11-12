@@ -10,14 +10,14 @@ namespace VS.NetcodeExampleProject.Networking {
         }
 
         protected virtual void OnDisable() {
-            SessionWidgetEventDispatcher.Instance.DeregisterWidget(this);
+            SessionWidgetEventDispatcher.Instance?.DeregisterWidget(this);
         }
         
         public virtual void OnServicesInitialized() { }
     }
     
-    public abstract class EnterSessionBase : WidgetBehaviour, ISessionLifecycleEvents {
-        [SerializeField] protected Button enterSessionButton;
+    public abstract class SessionActionBase : WidgetBehaviour, ISessionLifecycleEvents {
+        [SerializeField] protected Button sessionActionButton;
         
         [Header("Join Session Events")]
         [Tooltip("Event invoked when the user is attempting to join a session.")]
@@ -26,29 +26,35 @@ namespace VS.NetcodeExampleProject.Networking {
         public UnityEvent<ISession> JoinedSession = new();
         [Tooltip("Event invoked when the user has failed to join a session.")]
         public UnityEvent<SessionException> FailedToJoinSession = new();
+        [Tooltip("Event is invoked when the user leaves the current session")]
+        public UnityEvent LeftSession = new();
         
-        protected abstract void EnterSession();
+        protected abstract void SessionSessionAction();
 
         protected virtual void Awake() {
-            enterSessionButton ??= GetComponentInChildren<Button>();
-            enterSessionButton.onClick.AddListener(EnterSession);
-            enterSessionButton.interactable = false;
-        }
-        
-        public void OnSessionJoining() {
-            JoiningSession.Invoke();
-        }
-        
-        public void OnSessionJoined(ISession session) {
-            JoinedSession.Invoke(session);
-        }
-        
-        public void OnSessionFailedToJoin(SessionException exception) {
-            FailedToJoinSession.Invoke(exception);
+            sessionActionButton ??= GetComponentInChildren<Button>();
+            sessionActionButton.onClick.AddListener(SessionSessionAction);
+            sessionActionButton.interactable = false;
         }
         
         public override void OnServicesInitialized() {
-            enterSessionButton.interactable = true;
+            sessionActionButton.interactable = true;
+        }
+        
+        public virtual void OnSessionJoining() {
+            JoiningSession.Invoke();
+        }
+        
+        public virtual void OnSessionJoined(ISession session) {
+            JoinedSession.Invoke(session);
+        }
+        
+        public virtual void OnSessionFailedToJoin(SessionException exception) {
+            FailedToJoinSession.Invoke(exception);
+        }
+        
+        public virtual void OnSessionLeft() {
+            LeftSession.Invoke();
         }
     }
 }
