@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace VS.NetcodeExampleProject.Networking {
     public class SessionConnectionApproval : MonoBehaviour {
-        [SerializeField] private Vector3 playerSpawnPosition;
+        [SerializeField] private SessionConfig sessionConfig;
         
         private void Start() {
             NetworkManager.Singleton.ConnectionApprovalCallback += ConnectionApprovalWithSpawnPosition;
@@ -12,8 +12,8 @@ namespace VS.NetcodeExampleProject.Networking {
         // must enable 'Connection Approval' in the NetworkManager
         private void ConnectionApprovalWithSpawnPosition(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response) {
             response.CreatePlayerObject = true;
-            response.Position = playerSpawnPosition;
-            response.Rotation = Quaternion.identity;
+            response.Position = sessionConfig.onClientConnectedPosition;
+            response.Rotation = sessionConfig.onClientConnectedRotation;
             response.Approved = true; // connection is always approved
         }
     }

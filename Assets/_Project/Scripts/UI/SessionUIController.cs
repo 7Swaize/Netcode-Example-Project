@@ -9,6 +9,10 @@ namespace _Project.Scripts.Runtime.UI {
             if (Input.GetKeyDown(KeyCode.Tab)) {
                 sessionUIContainer.SetActive(!sessionUIContainer.activeSelf);
             }
+
+            if (Input.GetKeyDown(KeyCode.Escape)) {
+                Cursor.lockState = CursorLockMode.None;
+            }
         }
     }
 }

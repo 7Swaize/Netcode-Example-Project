@@ -12,14 +12,18 @@ namespace VS.NetcodeExampleProject.Networking {
     public class SessionConfig : ScriptableObject {
         [Header("Session Settings")]
         public int maxPlayers = 8;
-        public bool isLocked;
-        public bool isPrivate;
-        public string sessionName;
+        public bool isLocked = false;
+        public bool isPrivate = false;
+        public string sessionName = "Test Session";
+        
+        [Header("Client Connected Settings")]
+        public Vector3 onClientConnectedPosition = Vector3.zero;
+        public Quaternion onClientConnectedRotation = Quaternion.identity;
+        
 
-        [Header("Network Settings")]
-        public NetworkConnectionType networkConnectionType = NetworkConnectionType.Relay;
-        public string listenIp = "0.0.0.0";
-        public int port = 0; // may need to set it to 7777? 
+        [HideInInspector] public NetworkConnectionType networkConnectionType = NetworkConnectionType.Relay;
+        [HideInInspector] public string listenIp = "0.0.0.0";
+        [HideInInspector] public int port = 0; // may need to set it to 7777? 
 
         [HideInInspector] public string publishIp;
         

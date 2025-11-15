@@ -19,7 +19,7 @@ public class NetworkedPlayerController : NetworkBehaviour {
 
     private void Awake() {
         _rigidbody = GetComponent<Rigidbody>();
-        // Cursor.lockState = CursorLockMode.Locked;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     // On Network Spawn is called when the object is spawned on the server. This is where we can do all netcode related initialization
