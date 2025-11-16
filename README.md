@@ -1,4 +1,4 @@
-# Unity Netcode Learning Project
+# Unity Netcode Learning Project - For My School
 
 Educational project demonstrating Unity Netcode for GameObjects (NGO) and Unity Multiplayer Services. Built as a reference for learning multiplayer game development fundamentals.
 
